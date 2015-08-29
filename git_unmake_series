@@ -1,0 +1,5 @@
+git checkout master
+git branch -D $1
+rm -rf $1
+rm -rf patchtemp
+git am --abort
