@@ -1,0 +1,68 @@
+#!/usr/bin/python
+
+import os
+import subprocess
+import sys
+
+mailrc = {};
+try:
+    for line in open(os.environ['GITLO_MAILRC']).readlines():
+        tokens = line.split()
+        if tokens[0] == "alias":
+            if len(tokens) >= 3:
+                #the other way round - index email addresses to shorthand.
+                mailrc[tokens[2]] = tokens[1]
+except:
+    print "WARNING: no or corrupt mailrc (GITLO_MAILRC env), \
+           output will be verbose"
+
+output="";
+skip = 0;
+
+args = sys.argv
+del args[0]
+sp = subprocess.Popen(['git', 'log', '--reverse'] + args, stdout=subprocess.PIPE)
+sp.wait()
+
+def do_annotation(tokens, prefix):
+        del tokens[0]
+        while (tokens[0][0] != "<"):
+            del tokens[0]
+        email = tokens[0]
+        email = email[1:len(email)-1]
+        if email in mailrc:
+            email = mailrc[email]
+        return " " + prefix + ":" + email
+
+
+for line in sp.stdout.readlines():
+    #print line
+    tokens = line.split()
+    if len(tokens) == 0:
+        tokens=[""]
+    if skip > 0:
+        if (skip == 1): #subject line
+            output += " " + line.rstrip()
+            for I in range(0, 75):
+                if (len(output) < I):
+                    output += " "
+        skip -= 1;
+    elif (tokens[0] == "commit"):
+        print output
+        del tokens[0]
+        output = tokens[0][:10] #next commit
+        del tokens[0]
+        #we may have a decorated log, take the rest of this line as-is
+        while len(tokens) > 0:
+            output += " " + tokens[0]
+            del tokens[0]
+        skip = 4; #Author:, Date:, blank, subject
+    elif tokens[0] == "Reviewed-by:":
+        output = output + do_annotation(tokens, "R")
+    elif tokens[0] == "Tested-by:":
+        output = output + do_annotation(tokens, "T")
+    elif tokens[0] == "Acked-by:":
+        output = output + do_annotation(tokens, "A")
+    elif tokens[0] == "Queued-by:":
+        output = output + do_annotation(tokens, "Q")
+print output
