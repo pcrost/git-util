@@ -31,7 +31,7 @@
 #INIT_COMMAND script to run before verifying patches (good for cleaning the tree if you are going to build test)
 #PER_PATCH_COMMAND script to run every patch. passed the patch as argument (good for running checkpatch and build test). If it fails, the whole series aborts.
 
-USAGE="git_make_series BRANCH_STEM VERSION BASELINE [SUBJECT_PREFIX] [BRANCH_SUFFIX] [INIT_COMMAND] [PER_PATCH_COMMAND] [NUM_CHECK_SKIPS]"
+USAGE="git_make_series BRANCH_STEM VERSION BASELINE [SUBJECT_PREFIX] [BRANCH_SUFFIX] [INIT_COMMAND] [PER_PATCH_COMMAND] [NUM_CHECK_SKIPS] [PULL_REMOTE]"
 
 if [ $# -ge 3 ]; then
     BRANCH_STEM=$1
@@ -58,6 +58,9 @@ if [ $# -ge 3 ]; then
     else
         NUM_SKIPS=0
     fi
+    if [ $# -ge 9 ]; then
+        PULL_REMOTE=$9
+    fi
 else
     echo "usage ${USAGE}"
 fi
@@ -67,6 +70,9 @@ git checkout ${BRANCH_STEM}.${BRANCH_SUFFIX}
 RETVAL=$?
 [ $RETVAL -ne 0 ] && echo "argument branch ${BRANCH_STEM} has no ${BRANCH_SUFFIX} branch" && exit 255;
 NEW_BRANCH="${BRANCH_STEM}.${VERSION}"
+if [ "${PULL_REMOTE}" != "" ]; then
+    NEW_BRANCH="${NEW_BRANCH}.$(date +%Y.%m.%d)"
+fi
 git checkout -b ${NEW_BRANCH}
 RETVAL=$?
 [ $RETVAL -ne 0 ] && echo "could not create ${NEW_BRANCH} branch (already exists?)" && exit 255;
@@ -130,6 +136,11 @@ for I in $(ls patchtemp); do
     rm patchtemp/${I};
 done;
 
+if [ "${PULL_REMOTE}" != "" ]; then
+    git push -f ${PULL_REMOTE} ${NEW_BRANCH}
+    git request-pull ${BASELINE} ${PULL_REMOTE} > patchtemp/pull
+fi
+
 cd patchtemp;
 git format-patch --subject-prefix="${SUBJECT_PREFIX} v${VERSION}" -n --thread ${COVER_ARG} ${BASELINE}
 RETVAL=$?
@@ -143,6 +154,10 @@ for I in $(ls patchtemp | grep -v "$$.log"); do
 done;
 
 if [ "${COVER_BODY}" != "" ]; then
+    if [ "${PULL_REMOTE}" != "" ]; then
+        sed "/^\*\*\* BLURB HERE \*\*\*$/q" -i patchtemp/0000-cover-letter.patch
+        sed -e "/^\*\*\* BLURB HERE \*\*\*$/r patchtemp/pull" -i patchtemp/0000-cover-letter.patch
+    fi
     sed -e "/^\*\*\* BLURB HERE \*\*\*$/r ${COVER_BODY}" -i patchtemp/0000-cover-letter.patch
     sed "/^\*\*\* BLURB HERE \*\*\*$/d" -i patchtemp/0000-cover-letter.patch
     sed "s/\*\*\* SUBJECT HERE \*\*\*/${COVER_SUBJECT}/" -i patchtemp/0000-cover-letter.patch
