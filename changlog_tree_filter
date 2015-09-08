@@ -1,0 +1,9 @@
+#!/bin/bash
+
+#git commit-msg filter to convert a simple --- in the commit message to the
+#---CHANGELOG--- format expected by git_make_series
+
+#run as:
+#git filter-branch ... ---msg-filter /path/to/changelog_tree_filter
+
+{ sed 's/\(^Signed-off-by:.*$\)/\1\n\n---CHANGELOG---/' | sed '/^---$/d'; echo "---END---"; }
