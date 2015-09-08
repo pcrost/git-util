@@ -66,9 +66,10 @@ git checkout master
 git checkout ${BRANCH_STEM}.${BRANCH_SUFFIX}
 RETVAL=$?
 [ $RETVAL -ne 0 ] && echo "argument branch ${BRANCH_STEM} has no ${BRANCH_SUFFIX} branch" && exit 255;
-git checkout -b ${BRANCH_STEM}.${VERSION}
+NEW_BRANCH="${BRANCH_STEM}.${VERSION}"
+git checkout -b ${NEW_BRANCH}
 RETVAL=$?
-[ $RETVAL -ne 0 ] && echo "could not create ${BRANCH_STEM}.${VERSION} branch (already exists?)" && exit 255;
+[ $RETVAL -ne 0 ] && echo "could not create ${NEW_BRANCH} branch (already exists?)" && exit 255;
 if [ -d patchtemp ]; then
     echo "aborting patchtemp directory exists";
     exit 255;
@@ -83,8 +84,8 @@ cd ..;
 git checkout ${BASELINE}
 RETVAL=$?
 [ $RETVAL -ne 0 ] && echo "could not checkout baseline revision" && exit 255;
-git branch -D ${BRANCH_STEM}.${VERSION}
-git checkout -b ${BRANCH_STEM}.${VERSION}
+git branch -D ${NEW_BRANCH}
+git checkout -b ${NEW_BRANCH}
 RETVAL=$?
 [ $RETVAL -ne 0 ] && echo "could not branch off baseline revision" && exit 255;
 
@@ -159,8 +160,8 @@ echo "sleep 2" >> send_email
 echo "done" >> send_email
 popd
 
-mkdir -p $(dirname ${BRANCH_STEM}.${VERSION})
-mv patchtemp ${BRANCH_STEM}.${VERSION}
+mkdir -p $(dirname ${NEW_BRANCH})
+mv patchtemp ${NEW_BRANCH}
 RETVAL=$?
 [ $RETVAL -ne 0 ] && echo "could not create output directory" && exit 255;
 
