@@ -21,7 +21,7 @@
 #the changelog is indicated by the ---CHANGELOG--- and ---END--- Markers
 #patches that are prefixed with HACK: in the subject line are removed from the series.
 #A patch with the prefix COVER: will have its changes discarded but the commit message will be used for the cover letter
-#A patch with the prefix BAIL: will case ass remaining patches (inclusive) to be removed from the series.
+#A patch with the prefix BAIL: will cause all remaining patches (inclusive) to be removed from the series.
 
 #Arguments
 #BRANCH_STEM the main part of the name a branch (before the .)
