@@ -138,7 +138,9 @@ done;
 
 if [ "${PULL_REMOTE}" != "" ]; then
     git push -f -u ${PULL_REMOTE} ${NEW_BRANCH}
-    git request-pull ${BASELINE} ${PULL_REMOTE} > patchtemp/pull
+    git tag -s ${NEW_BRANCH}.tag -m "signed tag of ${NEW_BRANCH}"
+    git push -f    ${PULL_REMOTE} ${NEW_BRANCH}.tag
+    git request-pull ${BASELINE} ${PULL_REMOTE} ${NEW_BRANCH}.tag > patchtemp/pull
 fi
 
 cd patchtemp;
