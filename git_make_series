@@ -171,6 +171,9 @@ touch patchtemp/send_email
 pushd patchtemp
 echo "git send-email \\" >> send_email
     echo "--to qemu-devel@nongnu.org \\" >> send_email;
+    if [ "${PULL_REMOTE}" != "" ]; then
+        echo "--cc pmm \\" >> send_email
+    fi;
 echo "\$(ls 00*);" >> send_email
 popd
 
