@@ -137,7 +137,7 @@ for I in $(ls patchtemp); do
 done;
 
 if [ "${PULL_REMOTE}" != "" ]; then
-    git push -f ${PULL_REMOTE} ${NEW_BRANCH}
+    git push -f -u ${PULL_REMOTE} ${NEW_BRANCH}
     git request-pull ${BASELINE} ${PULL_REMOTE} > patchtemp/pull
 fi
 
