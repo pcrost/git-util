@@ -116,6 +116,7 @@ for I in $(ls patchtemp); do
     elif [ $(echo $I | grep "[0-9]*-COVER") ]; then #thats the cover letter
         [ "${COVER_FOUND}" == "y" ] && echo "multiple cover letters found - invalid" && exit 255;
         COVER_FOUND="y";
+        BAIL="y"
         COVER_SUBJECT=$(grep -m 1 "Subject: \[.*\]" patchtemp/${I} | sed "s/Subject: \[.*\] COVER://")
         COVER_BODY="patchtemp/${I}.$$.log"
         COVER_ARG="--cover-letter"
